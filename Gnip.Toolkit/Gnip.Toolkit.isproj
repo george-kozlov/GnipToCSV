@@ -1,0 +1,48 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+	<PropertyGroup>
+		<!-- Select a Product Configuration -->
+		<InstallShieldProductConfiguration>Express</InstallShieldProductConfiguration>
+		<!-- Select a Visual Studio Configuration / InstallShield Release -->
+		<Configuration>Debug</Configuration>
+		<InstallShieldRelease>$(Configuration)</InstallShieldRelease>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- The InstallShieldProject item selects the project to build -->
+		<InstallShieldProject Include="$(MSBuildProjectDirectory)\$(MSBuildProjectName).isl"/>
+		<!-- The InstallShieldReleaseFlags sets Release Flags -->
+		<!--<InstallShieldReleaseFlags Include=""/>-->
+		<!-- The InstallShieldMergeModulePath specifies what directories are
+		searched for Merge Modules -->
+		<!--<InstallShieldMergeModulePath Include=""/>-->
+	</ItemGroup>
+	<ItemGroup>
+		<!-- The ProjectReference items refer to any Visual Studio solutions you want to automatically probe for Project Output Groups.  -->
+	</ItemGroup>
+	<ItemGroup>
+		<!-- The TaggedOutputs items allow you to explicitly add extra files to output groups. Each item must include both Name and OutputGroup, as well as TargetPath metadata values. -->
+		<!--<TaggedOutputs Include="C:\My Test Exe.exe">
+			<Name>My Test Project</Name>
+			<OutputGroup>Primary output</OutputGroup>
+			<TargetPath>My Test Exe.exe</TargetPath>
+		</TaggedOutputs> -->
+	</ItemGroup>
+	<Import Project="$(MSBuildExtensionsPath32)\InstallShield\2012SpringLimited\InstallShield.targets"/>
+	<ItemGroup>
+		<ProjectReference Include="..\Gnip.Client\Gnip.Client.csproj">
+			<Name>Gnip.Client</Name>
+			<Project>{BE723163-63C0-417D-8F53-0B50D4407530}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\Gnip.Data\Gnip.Data.csproj">
+			<Name>Gnip.Data</Name>
+			<Project>{5ACF435F-00B5-4D4D-B901-1171706B8D56}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\Gnip.Ruler\Gnip.Ruler.csproj">
+			<Name>Gnip.Ruler</Name>
+			<Project>{26FE2909-DDF9-4243-97A9-72A30D33F0B8}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\Gnip.Streamer\Gnip.Streamer.csproj">
+			<Name>Gnip.Streamer</Name>
+			<Project>{8402C7CA-37E3-4525-8034-ED3C1110DBF0}</Project>
+		</ProjectReference>
+	</ItemGroup>
+</Project>
