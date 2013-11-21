@@ -238,6 +238,7 @@ namespace Gnip.Client.Common
 				}
 				catch (CannotUnloadAppDomainException ex)
 				{
+                    System.Diagnostics.Debug.WriteLine(ex.Message);
 					UnloadAppDomain(unlDomain);
 				}
 
@@ -289,6 +290,19 @@ namespace Gnip.Client.Common
 			T instance = (T)Activator.CreateInstance(type);
 			return instance;
 		}
+
+        /// <summary>
+        /// Creates an instance of type and cast to T type
+        /// </summary>
+        /// <typeparam name="T">Type to instance should be custed</typeparam>
+        /// <param name="type">Type instance of should be created</param>
+        /// <param name="args">Array of constructor parameters in case when not default constructor should be called</param>
+        /// <returns>Instance of created and custed type</returns>
+        public static object CreateAndCastInstance(Type type, params object[] args)
+        {
+            object instance = Activator.CreateInstance(type, args);
+            return instance;
+        }
 
 		/// <summary>
 		/// Creates an instance of type and cast to T type

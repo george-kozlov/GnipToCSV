@@ -2750,7 +2750,7 @@
 		<col def="I2">Order</col>
 		<col def="I2">ISSetupLocation</col>
 		<col def="S255">ISReleaseFlags</col>
-		<row><td>_6272E9D6_2D1B_46C7_80F6_9F77A73748A7_</td><td>Microsoft .NET Framework 3.5 SP1.prq</td><td/><td/><td/></row>
+		<row><td>_59DADF2E_9A84_4D87_B1FF_21B9F72B5959_</td><td>Microsoft .NET Framework 4.0 Full.prq</td><td/><td/><td/></row>
 	</table>
 
 	<table name="ISSetupType">
@@ -4517,7 +4517,7 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[INSTALLDIR]Gnip.Streamer.Primary output</td><td/></row>
 		<row><td>ProductCode</td><td>{137AE047-845C-467C-84DE-1119F36BE354}</td><td/></row>
 		<row><td>ProductName</td><td>Gnip.Toolkit</td><td/></row>
-		<row><td>ProductVersion</td><td>1.03.63</td><td/></row>
+		<row><td>ProductVersion</td><td>1.05.81</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>

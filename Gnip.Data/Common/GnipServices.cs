@@ -7,31 +7,36 @@ namespace Gnip.Data.Common
 {
 	public enum GnipSources
 	{
-		Bitly,
-		BoardReader,
-		Dailymotion,
-		Delicious,
-		Disqus,
-		Estimize,
+        //Automattic,
+		//Bitly,
+		//BoardReader,
+		//Dailymotion,
+		//Delicious,
+		//Disqus,
+		//Estimize,
 		Facebook,
-		Flickr,
-		GetGlue,
+		//Flickr,
+		//GetGlue,
 		GooglePlus,
-		Identica,
-		Instagram,
-		IntenseDebate,
-		Metacafe,
-		Newsgator,
-		Panoramio,
-		Photobucket,
-		Plurk,
+		//Identica,
+		//Instagram,
+		//Metacafe,
+		//Newsgator,
+		//Panoramio,
+		//Photobucket,
+		//Plurk,
 		Reddit,
-		StackOverflow,
-		StockTwits,
-		Tumblr,
+		//StackOverflow,
+		//StockTwits,
+		//Tumblr,
 		Twitter,
-		Vimeo,
-		Wordpress,
+		//Vimeo,
 		YouTube
 	}
+
+    public enum GnipDataFormat
+    {
+        XML,
+        Json
+    }
 }

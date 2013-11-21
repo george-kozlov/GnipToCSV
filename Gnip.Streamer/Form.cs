@@ -1,7 +1,7 @@
 ﻿
 // <author>George Kozlov (george.kozlov@outlook.com)</author>
 // <date>07/05/2013</date>
-// <summary>GnipToCSV form class</summary>
+// <summary>GnipStreamer form class</summary>
 
 using System;
 using System.IO;
@@ -15,10 +15,10 @@ using System.Globalization;
 
 using Gnip.Data;
 using Gnip.Data.Common;
-using Gnip.Data.Twitter;
 
 using Gnip.Client;
 using Gnip.Client.Common;
+using Gnip.Client.Connections;
 
 using Gnip.Streamer.Common;
 
@@ -32,7 +32,7 @@ namespace Gnip.Streamer
 		GnipStreamerArgs _settings = null;
 		List<KeyValuePair<string, string>> _headers = new List<KeyValuePair<string, string>>();
 		List<List<string>> _results = new List<List<string>>();
-		GnipProcessor _processor = null;
+		GnipProcessorBase _processor = null;
 
 		#endregion
 
@@ -86,12 +86,13 @@ namespace Gnip.Streamer
 
 		#region Private Methods
 
-		private void PopulateTreeWithTheFields(Type type, TreeNode node)
+		private void PopulateTreeWithTheFields(Type type, TreeNode node, bool overrideName = true )
 		{
 			CSVContractAttribute conAttribute = ReflectionHelper.GetTypeAttribute<CSVContractAttribute>(type);
 			if (conAttribute != null)
 			{
-				node.Text = conAttribute.Name;
+                if (overrideName)
+				    node.Text = conAttribute.Name;
 
 				IList<AttributeInfo<CSVMemberAttribute>> attributes = ReflectionHelper.GetTypeMembersAttributesInfo<CSVMemberAttribute>(type);
 				if (attributes != null && attributes.Count > 0)
@@ -107,7 +108,7 @@ namespace Gnip.Streamer
 							subNode.Tag = attr.MemberName;
 							conAttribute = ReflectionHelper.GetTypeAttribute<CSVContractAttribute>(attr.MemberType);
 							if (conAttribute != null)
-								PopulateTreeWithTheFields(attr.MemberType, subNode);
+								PopulateTreeWithTheFields(attr.MemberType, subNode, false);
 						}
 						else
 						{
@@ -229,7 +230,7 @@ namespace Gnip.Streamer
 			SetControlPropertyThreadSafe(tvSelector, "Enabled", enabled);
 			SetControlPropertyThreadSafe(rbLive, "Enabled", enabled);
 			SetControlPropertyThreadSafe(rbReply, "Enabled", enabled);
-			//SetControlPropertyThreadSafe(cbSource, "Enabled", enabled);
+			SetControlPropertyThreadSafe(cbSource, "Enabled", enabled);
 
 			if (GetControlPropertyThreadSafe<bool>(rbReply, "Checked"))
 			{
@@ -247,6 +248,11 @@ namespace Gnip.Streamer
 			tbOutput.Text = _settings.output;
 			nAppend.Value = _settings.append;
 			nTotal.Value = _settings.total;
+
+            cbSource.Items.Clear();
+            foreach (GnipSources source in Enum.GetValues(typeof(GnipSources)))
+                cbSource.Items.Add(source.ToString());
+            cbSource.SelectedItem = _settings.source.ToString();
 
 			if (_settings.live)
 				rbLive.Checked = true;
@@ -337,7 +343,8 @@ namespace Gnip.Streamer
 				if (cancelResult == DialogResult.Yes)
 				{
 					_isRun = false;
-					_processor.EndStreaming();
+                    if (_processor != null)
+					    _processor.EndStreaming();
 					EnableControls(true);
 					bStart.Text = "Start";
 					pbProgress.Value = 0;
@@ -369,21 +376,15 @@ namespace Gnip.Streamer
 			pbProgress.Maximum = _settings.total;
 			pbProgress.Step = 1;
 
-			GnipProcessor processor = GnipProcessor.CreateGnipProcessor(_settings.username, _settings.password, _settings.account, _settings.source);
-			if (!_settings.live)
-				processor = GnipProcessor.CreateGnipProcessor(_settings.username, _settings.password, _settings.account, _settings.source, false);
+            SandBoxConnection connection = new SandBoxConnection(_settings.username, _settings.password, _settings.account, _settings.source);
+            connection.ReplyFrom = DateTime.ParseExact(_settings.from, "yyyyMMddHHmm", CultureInfo.InvariantCulture);
+            connection.ReplyTo = DateTime.ParseExact(_settings.to, "yyyyMMddHHmm", CultureInfo.InvariantCulture);
+            connection.IsLive = _settings.live;
+
+            GnipProcessorAsync processor = GnipProcessorBase.CreateGnipProcessor<GnipProcessorAsync>(connection);
 			processor.DataReceived += processor_DataReceived;
 			processor.ErrorHappened += processor_ErrorHappened;
-			processor.ReplyFrom = DateTime.ParseExact(_settings.from, "yyyyMMddHHmm", CultureInfo.InvariantCulture);
-			processor.ReplyTo = DateTime.ParseExact(_settings.to, "yyyyMMddHHmm", CultureInfo.InvariantCulture);
-			_processor = processor;
-
-			ThreadPool.QueueUserWorkItem(new WaitCallback(delegate(object context)
-				{
-					GnipProcessor proc = context as GnipProcessor;
-					if (proc != null)
-						proc.BeginStreaming();
-				}), processor);
+            processor.BeginStreaming();
 		}
 
 		void processor_ErrorHappened(object sender, Exception ex)
@@ -402,74 +403,71 @@ namespace Gnip.Streamer
 			_isRun = false;
 		}
 
-		private void processor_DataReceived(object sender, ActivityBase activity)
+		private void processor_DataReceived(object sender, DynamicActivityBase activity)
 		{
-			GnipProcessor processor = sender as GnipProcessor;
+            GnipProcessorAsync processor = sender as GnipProcessorAsync;
 			if (processor == null)
 				return;
 
-			switch (processor.Source)
+			switch (processor.Connection.DataSource)
 			{
 				case GnipSources.Twitter:
 					{
-						if (ReflectionHelper.IsValidCast(typeof(TwitterActivity), activity))
+						List<string> row = new List<string>(_headers.Count);
+
+						foreach (KeyValuePair<string, string> title in _headers)
 						{
-							TwitterActivity castedActivity = activity as TwitterActivity;
-							List<string> row = new List<string>(_headers.Count);
+							object value = ReflectionHelper.GetNestedPropertyValue(title.Key, activity);
 
-							foreach (KeyValuePair<string, string> title in _headers)
+							if (value == null)
+								row.Add(string.Empty);
+							else
 							{
-								object value = ReflectionHelper.GetNestedPropertyValue(title.Key, activity);
-
-								if (value == null)
-									row.Add(string.Empty);
-								else
+								if (ReflectionHelper.IsEnumerable(value) && !ReflectionHelper.IsValidCast(typeof(string), value))
 								{
-									if (ReflectionHelper.IsEnumerable(value) && !ReflectionHelper.IsValidCast(typeof(string), value))
-									{
-										IEnumerable enumerable = value as IEnumerable;
-										string res = string.Empty;
+									IEnumerable enumerable = value as IEnumerable;
+									string res = string.Empty;
 
-										foreach (object item in enumerable)
-											res = string.Format("{0} {1}", res, item);
+									foreach (object item in enumerable)
+										res = string.Format("{0} {1}", res, item);
 
-										res = res.Trim();
-										row.Add(res);
-									}
-									else
-										row.Add(value.ToString());
+									res = res.Trim();
+									row.Add(res);
 								}
-							}
-
-							_results.Add(row);
-							WriteLineToTrace("{0} record(s) have been received.", _results.Count);
-
-							int index = ((_results.Count - (_settings.append + 1)) < 0) ? 0 : _results.Count - (_settings.append + 1);
-							int count = ((index + _settings.append) > _results.Count) ? _results.Count - index : _settings.append;
-
-							if (_results.Count % _settings.append == 0)
-								GenerateCsv(_results.GetRange(index, count), true);
-
-							int progress = GetControlPropertyThreadSafe<int>(pbProgress, "Value");
-							SetControlPropertyThreadSafe(pbProgress, "Value", progress + 1);
-
-							if (_results.Count == _settings.total)
-							{
-								processor.EndStreaming();
-								SetControlPropertyThreadSafe(pbProgress, "Value", 0);
-								SetControlPropertyThreadSafe(bStart, "Text", "Start");
-								EnableControls(true);
-								_isRun = false;
+								else
+									row.Add(value.ToString());
 							}
 						}
 
-						break;
+						_results.Add(row);
+						WriteLineToTrace("{0} record(s) have been received.", _results.Count);
+
+						int index = ((_results.Count - (_settings.append + 1)) < 0) ? 0 : _results.Count - (_settings.append + 1);
+						int count = ((index + _settings.append) > _results.Count) ? _results.Count - index : _settings.append;
+
+						if (_results.Count % _settings.append == 0)
+							GenerateCsv(_results.GetRange(index, count), true);
+
+						int progress = GetControlPropertyThreadSafe<int>(pbProgress, "Value");
+						SetControlPropertyThreadSafe(pbProgress, "Value", progress + 1);
+
+						if (_results.Count == _settings.total)
+						{
+							processor.EndStreaming();
+							SetControlPropertyThreadSafe(pbProgress, "Value", 0);
+							SetControlPropertyThreadSafe(bStart, "Text", "Start");
+							EnableControls(true);
+							_isRun = false;
+						}
 					}
+
+					break;
 			}
 		}
 
 		private void cbService_SelectedIndexChanged(object sender, EventArgs ea)
 		{
+            _headers.Clear();
 			tvSelector.Nodes.Clear();
 			TreeNode root = new TreeNode();
 
@@ -480,7 +478,7 @@ namespace Gnip.Streamer
 			PopulateTreeWithTheFields(outputType, root);
 			TraceHeaders();
 			tvSelector.Nodes.Add(root);
-			tvSelector.ExpandAll();
+            tvSelector.ExpandAll();
 		}
 
 		private void tvSelector_AfterCheck(object sender, TreeViewEventArgs ea)

@@ -56,7 +56,7 @@ namespace Gnip.Ruler
             this.lvRules = new System.Windows.Forms.ListView();
             this.cTag = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.cRule = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.bStart = new System.Windows.Forms.Button();
+            this.btStart = new System.Windows.Forms.Button();
             this.bClose = new System.Windows.Forms.Button();
             this.btAbout = new System.Windows.Forms.Button();
             this.btSave = new System.Windows.Forms.Button();
@@ -164,39 +164,12 @@ namespace Gnip.Ruler
             // cbSource
             // 
             this.cbSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbSource.Enabled = false;
             this.cbSource.FormattingEnabled = true;
-            this.cbSource.Items.AddRange(new object[] {
-            "Bitly",
-            "Board Reader",
-            "Dailymotion",
-            "Delicious",
-            "Disqus",
-            "Estimize",
-            "Facebook",
-            "Flickr",
-            "GetGlue",
-            "Google Plus",
-            "Identi.ca",
-            "Instagram",
-            "IntenseDebate",
-            "Metacafe",
-            "Newsgator",
-            "Panoramio",
-            "Photobucket",
-            "Plurk",
-            "Reddit",
-            "StackOverflow",
-            "StockTwits",
-            "Tumblr",
-            "Twitter",
-            "Vimeo",
-            "Wordpress",
-            "YouTube"});
             this.cbSource.Location = new System.Drawing.Point(179, 18);
             this.cbSource.Name = "cbSource";
             this.cbSource.Size = new System.Drawing.Size(200, 21);
             this.cbSource.TabIndex = 21;
+            this.cbSource.SelectedIndexChanged += new System.EventHandler(this.cbSource_SelectedIndexChanged);
             // 
             // tbPassword
             // 
@@ -349,15 +322,15 @@ namespace Gnip.Ruler
             this.cRule.Text = "Rule";
             this.cRule.Width = 280;
             // 
-            // bStart
+            // btStart
             // 
-            this.bStart.Location = new System.Drawing.Point(250, 511);
-            this.bStart.Name = "bStart";
-            this.bStart.Size = new System.Drawing.Size(75, 23);
-            this.bStart.TabIndex = 4;
-            this.bStart.Text = "Get rules";
-            this.bStart.UseVisualStyleBackColor = true;
-            this.bStart.Click += new System.EventHandler(this.bStart_Click);
+            this.btStart.Location = new System.Drawing.Point(250, 511);
+            this.btStart.Name = "btStart";
+            this.btStart.Size = new System.Drawing.Size(75, 23);
+            this.btStart.TabIndex = 4;
+            this.btStart.Text = "Get rules";
+            this.btStart.UseVisualStyleBackColor = true;
+            this.btStart.Click += new System.EventHandler(this.btStart_Click);
             // 
             // bClose
             // 
@@ -398,7 +371,7 @@ namespace Gnip.Ruler
             this.Controls.Add(this.btSave);
             this.Controls.Add(this.btAbout);
             this.Controls.Add(this.bClose);
-            this.Controls.Add(this.bStart);
+            this.Controls.Add(this.btStart);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.pictureBox1);
@@ -426,7 +399,7 @@ namespace Gnip.Ruler
 		private System.Windows.Forms.TextBox tbPassword;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.GroupBox groupBox2;
-		private System.Windows.Forms.Button bStart;
+		private System.Windows.Forms.Button btStart;
         private System.Windows.Forms.Button bClose;
         private System.Windows.Forms.Button btAbout;
         private System.Windows.Forms.Button btSave;

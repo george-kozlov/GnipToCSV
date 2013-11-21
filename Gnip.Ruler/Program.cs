@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Configuration;
+using System.ComponentModel;
 
 using Gnip.Ruler.Common;
 
@@ -37,6 +38,8 @@ namespace Gnip.Ruler
 				appArgs.source = section.Source;
 				appArgs.live = section.Live;
 			}
+
+            dynamic d = new { isLive = true };
 
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);

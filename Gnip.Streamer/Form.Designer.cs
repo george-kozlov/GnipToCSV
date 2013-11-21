@@ -276,35 +276,7 @@ namespace Gnip.Streamer
             // cbSource
             // 
             this.cbSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbSource.Enabled = false;
             this.cbSource.FormattingEnabled = true;
-            this.cbSource.Items.AddRange(new object[] {
-            "Bitly",
-            "Board Reader",
-            "Dailymotion",
-            "Delicious",
-            "Disqus",
-            "Estimize",
-            "Facebook",
-            "Flickr",
-            "GetGlue",
-            "Google Plus",
-            "Identi.ca",
-            "Instagram",
-            "IntenseDebate",
-            "Metacafe",
-            "Newsgator",
-            "Panoramio",
-            "Photobucket",
-            "Plurk",
-            "Reddit",
-            "StackOverflow",
-            "StockTwits",
-            "Tumblr",
-            "Twitter",
-            "Vimeo",
-            "Wordpress",
-            "YouTube"});
             this.cbSource.Location = new System.Drawing.Point(157, 18);
             this.cbSource.Name = "cbSource";
             this.cbSource.Size = new System.Drawing.Size(200, 21);
@@ -315,6 +287,7 @@ namespace Gnip.Streamer
             // 
             this.tbPassword.Location = new System.Drawing.Point(300, 75);
             this.tbPassword.Name = "tbPassword";
+            this.tbPassword.PasswordChar = '*';
             this.tbPassword.Size = new System.Drawing.Size(166, 20);
             this.tbPassword.TabIndex = 3;
             // 

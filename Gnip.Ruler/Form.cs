@@ -1,7 +1,7 @@
 ﻿
 // <author>George Kozlov (george.kozlov@outlook.com)</author>
 // <date>07/05/2013</date>
-// <summary>GnipToCSV form class</summary>
+// <summary>GnipRuler form class</summary>
 
 using System;
 using System.IO;
@@ -15,10 +15,10 @@ using System.Globalization;
 
 using Gnip.Data;
 using Gnip.Data.Common;
-using Gnip.Data.Twitter;
 
 using Gnip.Client;
 using Gnip.Client.Common;
+using Gnip.Client.Connections;
 
 using Gnip.Ruler.Common;
 
@@ -193,6 +193,7 @@ namespace Gnip.Ruler
             tbAccount.Enabled = enabled;
             tbUsername.Enabled = enabled;
             tbPassword.Enabled = enabled;
+            cbSource.Enabled = enabled;
             rbLive.Enabled = enabled;
             rbReply.Enabled = enabled;
 		}
@@ -202,6 +203,10 @@ namespace Gnip.Ruler
             tbAccount.Text = _settings.account;
 			tbUsername.Text = _settings.username;
 			tbPassword.Text = _settings.password;
+
+            cbSource.Items.Clear();
+            foreach (GnipSources source in Enum.GetValues(typeof(GnipSources)))
+                cbSource.Items.Add(source.ToString());
             cbSource.SelectedItem = _settings.source.ToString();
 
             if (_settings.live)
@@ -212,15 +217,6 @@ namespace Gnip.Ruler
 
         private void ReadRules()
         {
-            if (_processor == null)
-            {
-                GnipProcessor processor = GnipProcessor.CreateGnipProcessor(_settings.username, _settings.password, _settings.account, _settings.source);
-                if (!_settings.live)
-                    processor = GnipProcessor.CreateGnipProcessor(_settings.username, _settings.password, _settings.account, _settings.source, false);
-                processor.ErrorHappened += processor_ErrorHappened;
-                _processor = processor;
-            }
-
             _rules.Clear();
             _rules = _processor.GetRules();
 
@@ -256,30 +252,66 @@ namespace Gnip.Ruler
 			Application.Exit();
 		}
 
-		private void bStart_Click(object sender, EventArgs e)
+		private void btStart_Click(object sender, EventArgs e)
 		{
-            if (_hasChanges)
+            if (btStart.Text.Equals("Cancel") && _hasChanges)
 			{
-				DialogResult cancelResult = MessageBox.Show("You have unsaved changes in rules. Are you sure you want to refresh the rules? All unsaved changes will be lost.", "Refresh rules",
+				DialogResult cancelResult = MessageBox.Show("You have unsaved changes in rules. Are you sure you want to cancel the changes? All unsaved changes will be lost.", "Cancel changes",
 					MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
 				if (cancelResult == DialogResult.Yes)
 				{
                     _hasChanges = false;
-					bStart.Text = "Get rules";
+					btStart.Text = "Get rules";
                     btSave.Enabled = false;
-                    ReadRules();
+                    lvRules.Items.Clear();
+                    EnableControls(true);
 				}
 
 				return;
 			}
+            else if (btStart.Text.Equals("Cancel") && !_hasChanges)
+            {
+                _hasChanges = false;
+                btStart.Text = "Get rules";
+                btSave.Enabled = false;
+                lvRules.Items.Clear();
+                EnableControls(true);
+
+                return;
+            }
 
 			if (!IsValidParameters())
 				return;
 
-			PopulateSettings();
+            cbSource_SelectedIndexChanged(cbSource, new EventArgs());
 			EnableControls(false);
             ReadRules();
+
+            btStart.Text = "Cancel";
 		}
+
+        private void ReInitProcessor()
+        {
+        }
+
+        private void cbSource_SelectedIndexChanged(object sender, EventArgs ea)
+        {
+            PopulateSettings();
+
+            if (_processor != null)
+                _processor.ErrorHappened -= processor_ErrorHappened;
+
+            //EnterpriseConnection connection = new EnterpriseConnection(_settings.username, _settings.password, _settings.account, _settings.source);
+            //connection.ConnectionId = "4";
+
+            SandBoxConnection connection = new SandBoxConnection(_settings.username, _settings.password, _settings.account, _settings.source);
+            connection.IsLive = _settings.live;
+
+            GnipProcessor processor = GnipProcessorBase.CreateGnipProcessor<GnipProcessor>(connection);
+            processor.ErrorHappened += processor_ErrorHappened;
+
+            _processor = processor;
+        }
 
         private void lvRules_SelectedIndexChanged(object sender, EventArgs ea)
         {
@@ -322,7 +354,7 @@ namespace Gnip.Ruler
                 if (!_hasChanges)
                 {
                     _hasChanges = true;
-                    bStart.Text = "Refresh rules";
+                    btStart.Text = "Cancel";
                     btSave.Enabled = true;
                 }
             }
@@ -357,7 +389,7 @@ namespace Gnip.Ruler
                         if (!_hasChanges)
                         {
                             _hasChanges = true;
-                            bStart.Text = "Refresh rules";
+                            btStart.Text = "Cancel";
                             btSave.Enabled = true;
                         }
                     }
@@ -388,8 +420,9 @@ namespace Gnip.Ruler
             ReadRules();
 
             _hasChanges = false;
-            bStart.Text = "Get rules";
+            btStart.Text = "Get rules";
             btSave.Enabled = false;
+            EnableControls(true);
         }
 
         private void lvRules_ColumnClick(object sender, ColumnClickEventArgs ea)
@@ -459,7 +492,7 @@ namespace Gnip.Ruler
                 if (count > 0)
                 {
                     _hasChanges = true;
-                    bStart.Text = "Refresh rules";
+                    btStart.Text = "Cancel";
                     btSave.Enabled = true;
                 }
 
