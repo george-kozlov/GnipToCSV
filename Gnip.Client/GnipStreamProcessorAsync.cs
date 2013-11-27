@@ -1,7 +1,11 @@
-﻿
-// <author>George Kozlov (george.kozlov@outlook.com)</author>
-// <date>07/05/2013</date>
-// <summary>GnipProcessorAsync class</summary>
+﻿//
+// Gnip.Ruler, Gnip.Streamer
+// Copyright (C) 2013 George Kozlov
+// These programs are free software: you can redistribute them and/or modify them under the terms of the GNU General Public License as published by the Free Software Foundation. either version 3 of the License, or any later version.
+// These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
+// For further questions or inquiries, please contact semantapi (at) gmail (dot) com
+//
 
 using System;
 using System.Collections.Generic;
@@ -24,12 +28,14 @@ using Gnip.Client.Connections;
 namespace Gnip.Client
 {
     
-	public class GnipProcessorAsync : GnipProcessorBase
+	public class GnipStreamProcessorAsync : GnipStreamProcessorBase
 	{
-        public GnipProcessorAsync(ConnectionBase connection)
+        public GnipStreamProcessorAsync(ConnectionBase connection)
             : base(connection)
         {
         }
+
+        #region GnipStreamProcessorBase overrides
 
         public override void BeginStreaming()
 		{
@@ -100,7 +106,7 @@ namespace Gnip.Client
                                 if (!Formatter.IsValid(heartBeatCheck))
                                     continue;
 
-                                Type contentType = GnipProcessorBase.GetObjectTypeByService(Connection.DataSource);
+                                Type contentType = GnipStreamProcessorBase.GetObjectTypeByService(Connection.DataSource);
                                 try
                                 {
                                     DynamicActivityBase activity = null;
@@ -165,6 +171,8 @@ namespace Gnip.Client
             {
                 OnErrorHappened(ex);
             }
-		}
-	}
+        }
+
+        #endregion
+    }
 }

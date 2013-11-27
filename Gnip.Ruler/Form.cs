@@ -1,7 +1,11 @@
-﻿
-// <author>George Kozlov (george.kozlov@outlook.com)</author>
-// <date>07/05/2013</date>
-// <summary>GnipRuler form class</summary>
+﻿//
+// Gnip.Ruler, Gnip.Streamer
+// Copyright (C) 2013 George Kozlov
+// These programs are free software: you can redistribute them and/or modify them under the terms of the GNU General Public License as published by the Free Software Foundation. either version 3 of the License, or any later version.
+// These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
+// For further questions or inquiries, please contact semantapi (at) gmail (dot) com
+//
 
 using System;
 using System.IO;
@@ -101,7 +105,7 @@ namespace Gnip.Ruler
 
         bool _hasChanges = false;
 		GnipRulerArgs _settings = null;
-        GnipProcessor _processor = null;
+        IRulesProcessor _processor = null;
 
         List<MatchingRule> _rules = new List<MatchingRule>();
 
@@ -304,10 +308,10 @@ namespace Gnip.Ruler
             //EnterpriseConnection connection = new EnterpriseConnection(_settings.username, _settings.password, _settings.account, _settings.source);
             //connection.ConnectionId = "4";
 
-            SandBoxConnection connection = new SandBoxConnection(_settings.username, _settings.password, _settings.account, _settings.source);
+            Twitter1PercentConnection connection = new Twitter1PercentConnection(_settings.username, _settings.password, _settings.account);
             connection.IsLive = _settings.live;
 
-            GnipProcessor processor = GnipProcessorBase.CreateGnipProcessor<GnipProcessor>(connection);
+            IRulesProcessor processor = GnipRulesProcessor.CreateRulesProcessor(connection);
             processor.ErrorHappened += processor_ErrorHappened;
 
             _processor = processor;

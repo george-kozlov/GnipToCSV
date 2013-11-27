@@ -1,7 +1,11 @@
-﻿
-// <author>George Kozlov (george.kozlov@outlook.com)</author>
-// <date>09/03/2013</date>
-// <summary>GnipProcessorBase class</summary>
+﻿//
+// Gnip.Ruler, Gnip.Streamer
+// Copyright (C) 2013 George Kozlov
+// These programs are free software: you can redistribute them and/or modify them under the terms of the GNU General Public License as published by the Free Software Foundation. either version 3 of the License, or any later version.
+// These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
+// For further questions or inquiries, please contact semantapi (at) gmail (dot) com
+//
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +25,7 @@ namespace Gnip.Client.Common
     public delegate void ErrorHappened(object sender, Exception ex);
     public delegate void HeartbeatReceived(object sender, HeartbeatEventArgs e);
 
-    public abstract class GnipProcessorBase
+    public abstract class GnipStreamProcessorBase
     {
         #region Private members
 
@@ -36,7 +40,7 @@ namespace Gnip.Client.Common
 
         #region Constructor
 
-        static GnipProcessorBase()
+        static GnipStreamProcessorBase()
         {
             _types.Add(GnipSources.Twitter, typeof(TwitterActivity));
             _types.Add(GnipSources.Facebook, typeof(FacebookActivity));
@@ -45,7 +49,7 @@ namespace Gnip.Client.Common
             _types.Add(GnipSources.Reddit, typeof(RedditActivity));
         }
 
-        public GnipProcessorBase(ConnectionBase connection)
+        public GnipStreamProcessorBase(ConnectionBase connection)
         {
             _connection = connection;
 
@@ -60,6 +64,11 @@ namespace Gnip.Client.Common
         #region Static methods
 
         public static T CreateGnipProcessor<T>(ConnectionBase connection)
+        {
+            return ReflectionHelper.CreateAndCastInstance<T>(typeof(T), new object[] { connection });
+        }
+
+        public static T CreateRulesProcessor<T>(ConnectionBase connection)
         {
             return ReflectionHelper.CreateAndCastInstance<T>(typeof(T), new object[] { connection });
         }
@@ -107,87 +116,10 @@ namespace Gnip.Client.Common
 
         #endregion
 
-        #region Public methods
+        #region Abstract methods
 
         public abstract void BeginStreaming();
         public abstract void EndStreaming();
-
-        public List<MatchingRule> GetRules()
-        {
-            List<MatchingRule> rules = new List<MatchingRule>();
-            HttpWebRequest request = GetAPIRequest("GET");
-
-            try
-            {
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (StreamReader reader = new StreamReader(response.GetResponseStream()))
-                using (MemoryStream memory = new MemoryStream(Encoding.UTF8.GetBytes(reader.ReadToEnd())))
-                {
-                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(MatchingRulesCollection));
-                    rules = (serializer.ReadObject(memory) as MatchingRulesCollection).Rules;
-                }
-            }
-            catch (Exception ex)
-            {
-                OnErrorHappened(ex);
-            }
-
-            return rules;
-        }
-
-        public void AddRules(List<MatchingRule> rules)
-        {
-            if (rules == null || rules.Count == 0)
-                return;
-
-            HttpWebRequest request = GetAPIRequest("POST");
-
-            try
-            {
-                using (MemoryStream memStream = new MemoryStream())
-                {
-                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(MatchingRulesCollection));
-                    serializer.WriteObject(memStream, new MatchingRulesCollection() { Rules = rules });
-
-                    request.ContentLength = memStream.Length;
-                    Stream writer = request.GetRequestStream();
-                    memStream.WriteTo(writer);
-
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                }
-            }
-            catch (Exception ex)
-            {
-                OnErrorHappened(ex);
-            }
-        }
-
-        public void RemoveRules(List<MatchingRule> rules)
-        {
-            if (rules == null || rules.Count == 0)
-                return;
-
-            HttpWebRequest request = GetAPIRequest("DELETE");
-
-            try
-            {
-                using (MemoryStream memStream = new MemoryStream())
-                {
-                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(MatchingRulesCollection));
-                    serializer.WriteObject(memStream, new MatchingRulesCollection() { Rules = rules });
-
-                    request.ContentLength = memStream.Length;
-                    Stream writer = request.GetRequestStream();
-                    memStream.WriteTo(writer);
-
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                }
-            }
-            catch (Exception ex)
-            {
-                OnErrorHappened(ex);
-            }
-        }
 
         #endregion
 
@@ -213,27 +145,16 @@ namespace Gnip.Client.Common
 
         protected HttpWebRequest GetStreamRequest()
         {
-            HttpWebRequest request = GetAPIRequest("GET", true);
-            request.Headers.Add("Accept-Encoding", "gzip");
-
-            return request;
-        }
-
-        protected HttpWebRequest GetAPIRequest(string method, bool useStream = false)
-        {
-            string url = string.Empty;
-            if (useStream)
-                url = Connection.GetStreamAPIURL();
-            else
-                url = Connection.GetRulesAPIURL();
+            string url = Connection.GetStreamAPIURL();
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Credentials = new NetworkCredential(Connection.Username, Connection.Password);
-            request.Method = method;
+            request.Method = "GET";
             request.PreAuthenticate = true;
             request.Timeout = Connection.Timeout;
             request.Accept = "application/json";
             request.ContentType = "application/json";
+            request.Headers.Add("Accept-Encoding", "gzip");
 
             return request;
         }

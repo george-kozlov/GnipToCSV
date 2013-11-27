@@ -7,30 +7,20 @@
 // For further questions or inquiries, please contact semantapi (at) gmail (dot) com
 //
 
-using System;
-using System.Dynamic;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
-using Gnip.Data.Common;
+using Gnip.Data;
+using Gnip.Client.Common;
+using Gnip.Client.Connections;
 
-namespace Gnip.Data
+namespace Gnip.Client
 {
-    [CSVContract(Name = "Facebook activity")]
-    public class FacebookActivity : EnterpriseActivity
+    public interface IRulesProcessor
     {
-        public FacebookActivity(DynamicObject dynamicObj)
-            : base(dynamicObj)
-        {
-        }
+        event ErrorHappened ErrorHappened;
 
-        [CSVMember(Name = "Post content", ValuePath = "Content", Default = true)]
-        public override string Content
-        {
-            get
-            {
-                return GetNestedValueOrDefault<string>("object.content", string.Empty);
-            }
-        }
+        List<MatchingRule> GetRules();
+        void AddRules(List<MatchingRule> rules);
+        void RemoveRules(List<MatchingRule> rules);
     }
 }

@@ -51,9 +51,11 @@
     <Compile Include="Formaters\FormatterBase.cs" />
     <Compile Include="Formaters\JsonFormatter.cs" />
     <Compile Include="Formaters\XMLFormatter.cs" />
-    <Compile Include="GnipProcessorAsync.cs" />
-    <Compile Include="GnipProcessor.cs" />
-    <Compile Include="GnipProcessorBase.cs" />
+    <Compile Include="GnipStreamProcessorAsync.cs" />
+    <Compile Include="GnipStreamProcessor.cs" />
+    <Compile Include="Basic\GnipStreamProcessorBase.cs" />
+    <Compile Include="Basic\IRulesProcessor.cs" />
+    <Compile Include="GnipRulesProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

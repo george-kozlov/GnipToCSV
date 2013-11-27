@@ -1,7 +1,11 @@
-﻿
-// <author>George Kozlov (george.kozlov@outlook.com)</author>
-// <date>07/05/2013</date>
-// <summary>GnipStreamer form class</summary>
+﻿//
+// Gnip.Ruler, Gnip.Streamer
+// Copyright (C) 2013 George Kozlov
+// These programs are free software: you can redistribute them and/or modify them under the terms of the GNU General Public License as published by the Free Software Foundation. either version 3 of the License, or any later version.
+// These programs are distributed in the hope that they will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
+// For further questions or inquiries, please contact semantapi (at) gmail (dot) com
+//
 
 using System;
 using System.IO;
@@ -32,7 +36,7 @@ namespace Gnip.Streamer
 		GnipStreamerArgs _settings = null;
 		List<KeyValuePair<string, string>> _headers = new List<KeyValuePair<string, string>>();
 		List<List<string>> _results = new List<List<string>>();
-		GnipProcessorBase _processor = null;
+		GnipStreamProcessorBase _processor = null;
 
 		#endregion
 
@@ -381,7 +385,7 @@ namespace Gnip.Streamer
             connection.ReplyTo = DateTime.ParseExact(_settings.to, "yyyyMMddHHmm", CultureInfo.InvariantCulture);
             connection.IsLive = _settings.live;
 
-            GnipProcessorAsync processor = GnipProcessorBase.CreateGnipProcessor<GnipProcessorAsync>(connection);
+            GnipStreamProcessorAsync processor = GnipStreamProcessorBase.CreateGnipProcessor<GnipStreamProcessorAsync>(connection);
 			processor.DataReceived += processor_DataReceived;
 			processor.ErrorHappened += processor_ErrorHappened;
             processor.BeginStreaming();
@@ -389,7 +393,7 @@ namespace Gnip.Streamer
 
 		void processor_ErrorHappened(object sender, Exception ex)
 		{
-			GnipProcessor processor = sender as GnipProcessor;
+			GnipStreamProcessor processor = sender as GnipStreamProcessor;
 			if (processor == null)
 				return;
 
@@ -405,7 +409,7 @@ namespace Gnip.Streamer
 
 		private void processor_DataReceived(object sender, DynamicActivityBase activity)
 		{
-            GnipProcessorAsync processor = sender as GnipProcessorAsync;
+            GnipStreamProcessorAsync processor = sender as GnipStreamProcessorAsync;
 			if (processor == null)
 				return;
 
@@ -473,7 +477,7 @@ namespace Gnip.Streamer
 
 			GnipSources source = (GnipSources)Enum.Parse(typeof(GnipSources), cbSource.Text);
 			_settings.source = source;
-			Type outputType = GnipProcessor.GetObjectTypeByService(source);
+			Type outputType = GnipStreamProcessor.GetObjectTypeByService(source);
 
 			PopulateTreeWithTheFields(outputType, root);
 			TraceHeaders();
